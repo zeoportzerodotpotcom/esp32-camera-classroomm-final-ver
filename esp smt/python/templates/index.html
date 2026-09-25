@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        ESP32 Smart Light Controller
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            padding: 20px;
+
+            background: #111;
+
+            color: #eee;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+        }
+
+
+        .container {
+
+            max-width: 1400px;
+
+            margin: auto;
+
+        }
+
+
+        h1 {
+
+            margin: 0 0 5px 0;
+
+            font-size: 28px;
+
+        }
+
+
+        .subtitle {
+
+            color: #aaa;
+
+            margin-bottom: 20px;
+
+        }
+
+
+.grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(500px, 2fr)
+        minmax(320px, 1fr);
+
+    gap: 20px;
+
+    align-items: start;
+}
+
+
+        .panel {
+
+            background: #1b1b1b;
+
+            border: 1px solid #333;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+        }
+
+
+        .panel-title {
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .camera-box {
+
+            width: 100%;
+
+            background: #000;
+
+            border-radius: 8px;
+
+            overflow: hidden;
+
+            border: 1px solid #333;
+
+        }
+
+
+        .camera-status {
+
+            display: inline-block;
+
+            margin: -4px 0 6px -4px;
+
+            padding: 5px 10px;
+
+            border-radius: 5px;
+
+            background: #080808;
+
+            border: 1px solid #333;
+
+            color: #40d97b;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            line-height: 1;
+
+        }
+
+
+        #camera {
+
+            display: block;
+
+            width: 100%;
+
+            height: auto;
+
+            min-height: 300px;
+
+            object-fit: contain;
+
+            background: #000;
+
+        }
+
+
+        .controls {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-top: 12px;
+
+        }
+
+
+        button {
+
+            border: none;
+
+            border-radius: 7px;
+
+            padding: 10px 15px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            background: #333;
+
+            color: white;
+
+        }
+
+
+        button:hover {
+
+            background: #444;
+
+        }
+
+
+        button.active {
+
+            background: #198754;
+
+        }
+
+
+        button.danger {
+
+            background: #b02a37;
+
+        }
+
+
+        button.warning {
+
+            background: #b58105;
+
+        }
+
+
+        button.blue {
+
+            background: #0d6efd;
+
+        }
+
+
+        .mode {
+
+            margin-top: 10px;
+
+            padding: 10px;
+
+            border-radius: 7px;
+
+            background: #222;
+
+            border: 1px solid #333;
+
+        }
+
+
+        .status-online {
+
+            color: #40d97b;
+
+            font-weight: bold;
+
+        }
+
+
+        .status-offline {
+
+            color: #ff5c5c;
+
+            font-weight: bold;
+
+        }
+
+
+        .roi-list {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+
+            max-height: 430px;
+
+            overflow-y: auto;
+
+        }
+
+
+        .roi {
+
+            display: grid;
+
+            grid-template-columns: 1fr auto;
+
+            align-items: center;
+
+            padding: 10px;
+
+            background: #242424;
+
+            border: 1px solid #333;
+
+            border-radius: 7px;
+
+        }
+
+
+        .roi-name {
+
+            font-weight: bold;
+
+        }
+
+
+        .roi-info {
+
+            color: #aaa;
+
+            font-size: 12px;
+
+            margin-top: 3px;
+
+        }
+
+
+        .roi-state {
+
+            min-width: 80px;
+
+            text-align: center;
+
+            padding: 5px 8px;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+        }
+
+
+        .detected {
+
+            background: #9e1b32;
+
+            color: white;
+
+        }
+
+
+        .clear {
+
+            background: #155d35;
+
+            color: white;
+
+        }
+
+
+        .pwm-list {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+        }
+
+
+        .led-row {
+
+            background: #242424;
+
+            padding: 10px;
+
+            border-radius: 7px;
+
+            border: 1px solid #333;
+
+        }
+
+
+        .led-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-bottom: 7px;
+
+        }
+
+
+        .led-name {
+
+            font-weight: bold;
+
+        }
+
+
+        .pwm-value {
+
+            color: #4da3ff;
+
+            font-weight: bold;
+
+        }
+
+
+        input[type="range"] {
+
+            width: 100%;
+
+            cursor: pointer;
+
+        }
+
+
+        .apply {
+
+            width: 100%;
+
+            margin-top: 12px;
+
+            background: #0d6efd;
+
+        }
+
+
+        .system-info {
+
+            margin-top: 15px;
+
+            padding: 10px;
+
+            background: #222;
+
+            border-radius: 7px;
+
+            font-size: 13px;
+
+            color: #bbb;
+
+        }
+
+
+        .log {
+
+            margin-top: 15px;
+
+            padding: 10px;
+
+            background: #080808;
+
+            border: 1px solid #292929;
+
+            border-radius: 7px;
+
+            height: 120px;
+
+            overflow-y: auto;
+
+            font-family: monospace;
+
+            font-size: 12px;
+
+            color: #aaa;
+
+        }
+
+
+        .bottom-panel {
+
+            margin-top: 20px;
+
+        }
+
+
+        .lighting-mode-panel {
+
+            margin-top: 20px;
+
+        }
+
+
+        .lighting-mode-controls {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+        }
+
+
+        .lighting-mode-select {
+
+            min-width: 250px;
+
+            padding: 9px 10px;
+
+            border: 1px solid #444;
+
+            border-radius: 7px;
+
+            background: #242424;
+
+            color: #eee;
+
+            font-size: 14px;
+
+        }
+
+
+        .lighting-mode-switch {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            color: #bbb;
+
+            font-size: 13px;
+
+        }
+
+
+        .lighting-mode-switch input {
+
+            width: 18px;
+
+            height: 18px;
+
+            accent-color: #198754;
+
+            cursor: pointer;
+
+        }
+
+
+        .lighting-mode-info {
+
+            margin-top: 10px;
+
+            color: #999;
+
+            font-size: 12px;
+
+        }
+
+
+        .footer-status {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 20px;
+
+            color: #aaa;
+
+            font-size: 13px;
+
+        }
+
+
+        @media (max-width: 900px) {
+
+            .grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            #camera {
+
+                min-height: 200px;
+
+            }
+
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        ESP32 Smart Light Controller
+    </h1>
+
+
+    <div class="subtitle">
+        Camera + ROI Detection + 6 PWM LED
+    </div>
+
+
+    <div class="grid">
+
+
+        <!-- =================================================
+             CAMERA
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-title">
+                Camera / ROI
+            </div>
+
+
+            <div
+                id="cameraStatus"
+                class="camera-status"
+            >
+                NORMAL
+            </div>
+
+
+            <div class="camera-box">
+
+                <img
+                    id="camera"
+                    src="/video"
+                    alt="ESP32 Camera"
+                >
+
+            </div>
+
+
+            <div class="controls">
+
+
+                <button
+                    id="autoBtn"
+                    class="active"
+                    onclick="setMode('AUTO')"
+                >
+                    AUTO
+                </button>
+
+
+                <button
+                    id="manualBtn"
+                    onclick="setMode('MANUAL')"
+                >
+                    MANUAL
+                </button>
+
+
+                <button
+                    class="warning"
+                    onclick="resetBackground()"
+                >
+                    RESET BACKGROUND
+                </button>
+
+
+                <button
+                    class="danger"
+                    onclick="allOff()"
+                >
+                    ALL OFF
+                </button>
+
+            </div>
+
+
+            <div class="mode">
+
+                Chế độ:
+
+                <strong id="modeText">
+                    AUTO
+                </strong>
+
+            </div>
+
+
+            <div class="system-info">
+
+
+                <div>
+
+                    ESP32:
+
+                    <span
+                        id="espStatus"
+                        class="status-offline"
+                    >
+                        Đang kiểm tra...
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    ESP32 IP:
+
+                    <strong id="espIp">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    Camera:
+
+                    <strong>
+                        640 × 480
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    Flask:
+
+                    <span
+                        class="status-online"
+                    >
+                        RUNNING
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             ROI STATUS
+        ================================================== -->
+
+        <div class="panel">
+
+
+            <div class="panel-title">
+                Trạng thái ROI
+            </div>
+
+
+            <div
+                id="roiList"
+                class="roi-list"
+            >
+
+                Đang chờ dữ liệu...
+
+            </div>
+
+
+            <div
+                class="log"
+                id="log"
+            >
+                Web interface started...
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <div class="panel lighting-mode-panel">
+
+        <div class="panel-title">
+            Lighting Mode
+        </div>
+
+
+        <div class="lighting-mode-controls">
+
+            <select
+                id="lightingModeSelect"
+                class="lighting-mode-select"
+                onchange="selectLightingMode()"
+            >
+                <option value="standard_study">
+                    Học bình thường
+                </option>
+                <option value="slide_presentation">
+                    Trình chiếu slide
+                </option>
+                <option value="lecturing">
+                    Thuyết trình
+                </option>
+                <option value="exam">
+                    Thi kiểm tra
+                </option>
+            </select>
+
+
+            <label class="lighting-mode-switch">
+
+                <input
+                    id="lightingModeEnabled"
+                    type="checkbox"
+                    onchange="toggleLightingMode()"
+                >
+
+                Bật lighting mode
+
+            </label>
+
+        </div>
+
+
+        <div
+            id="lightingModeInfo"
+            class="lighting-mode-info"
+        >
+            Lighting mode đang tắt.
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MANUAL PWM
+    ====================================================== -->
+
+    <div class="panel bottom-panel">
+
+
+        <div class="panel-title">
+            Điều khiển PWM thủ công
+        </div>
+
+
+        <div
+            id="pwmList"
+            class="pwm-list"
+        >
+
+
+            <!-- LED 0 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 0 - Cuối phòng 1
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value0"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm0"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(0)"
+                >
+
+            </div>
+
+
+            <!-- LED 1 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 1 - Trái 42
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value1"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm1"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(1)"
+                >
+
+            </div>
+
+
+            <!-- LED 2 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 2 - Giữa 41
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value2"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm2"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(2)"
+                >
+
+            </div>
+
+
+            <!-- LED 3 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 3 - Phải 39
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value3"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm3"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(3)"
+                >
+
+            </div>
+
+
+            <!-- LED 4 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 4 - Bục giảng 40
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value4"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm4"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(4)"
+                >
+
+            </div>
+
+
+            <!-- LED 5 -->
+
+            <div class="led-row">
+
+                <div class="led-header">
+
+                    <span class="led-name">
+                        LED 5 - Máy chiếu 2
+                    </span>
+
+                    <span
+                        class="pwm-value"
+                        id="value5"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="pwm5"
+                    min="0"
+                    max="255"
+                    value="0"
+                    oninput="updatePWMValue(5)"
+                >
+
+            </div>
+
+
+        </div>
+
+
+        <button
+            class="apply"
+            onclick="applyManualPWM()"
+        >
+            ÁP DỤNG PWM
+        </button>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <div class="panel bottom-panel">
+
+
+        <div class="footer-status">
+
+
+            <div>
+
+                Python Flask:
+
+                <span class="status-online">
+                    RUNNING
+                </span>
+
+            </div>
+
+
+            <div>
+
+                ESP32:
+
+                <span
+                    id="footerEsp"
+                    class="status-offline"
+                >
+                    CHECKING
+                </span>
+
+            </div>
+
+
+            <div>
+
+                Mode:
+
+                <strong id="footerMode">
+                    AUTO
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+    // =========================================================
+    // GLOBAL
+    // =========================================================
+
+    let currentMode = "AUTO";
+
+
+    const ledNames = [
+
+        "LED 0 - Cuối phòng 1",
+
+        "LED 1 - Trái 42",
+
+        "LED 2 - Giữa 41",
+
+        "LED 3 - Phải 39",
+
+        "LED 4 - Bục giảng 40",
+
+        "LED 5 - Máy chiếu 2"
+
+    ];
+
+
+    // =========================================================
+    // LOG
+    // =========================================================
+
+    function log(message) {
+
+        const box =
+            document.getElementById("log");
+
+
+        const now =
+            new Date();
+
+
+        const time =
+            now.toLocaleTimeString();
+
+
+        box.innerHTML +=
+            "[" +
+            time +
+            "] " +
+            message +
+            "<br>";
+
+
+        box.scrollTop =
+            box.scrollHeight;
+
+    }
+
+
+    // =========================================================
+    // MODE
+    // =========================================================
+
+    async function setMode(mode) {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/mode",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            mode: mode
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            currentMode =
+                data.mode ||
+                mode;
+
+
+            updateModeUI();
+
+
+            log(
+                "Chuyển chế độ: " +
+                currentMode
+            );
+
+
+        }
+        catch (error) {
+
+            log(
+                "Lỗi mode: " +
+                error.message
+            );
+
+        }
+
+    }
+
+
+    function updateLightingModeUI(data) {
+
+        const enabled = Boolean(
+            data && data.lighting_mode_enabled
+        );
+
+
+        const modeSelect =
+            document.getElementById(
+                "lightingModeSelect"
+            );
+
+
+        const modeSwitch =
+            document.getElementById(
+                "lightingModeEnabled"
+            );
+
+
+        const modeInfo =
+            document.getElementById(
+                "lightingModeInfo"
+            );
+
+
+        if (modeSwitch) {
+            modeSwitch.checked = enabled;
+        }
+
+
+        if (data && data.lighting_mode && modeSelect) {
+            modeSelect.value = data.lighting_mode;
+        }
+
+
+        if (!modeInfo) {
+            return;
+        }
+
+
+        if (!enabled) {
+            modeInfo.innerText =
+                "Lighting mode đang tắt.";
+
+            return;
+        }
+
+
+        const selectedMode =
+            data.lighting_mode ||
+            modeSelect.value;
+
+
+        modeInfo.innerText =
+            "Đang bật: " +
+            selectedMode +
+            (selectedMode === "exam"
+                ? " (AUTO bị khóa PWM)."
+                : " (AUTO vẫn được phép điều chỉnh PWM).");
+
+    }
+
+
+    async function sendLightingMode(enabled) {
+
+        const modeSelect =
+            document.getElementById(
+                "lightingModeSelect"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/lighting_mode",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            enabled: enabled,
+                            mode: modeSelect.value
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "HTTP " +
+                    response.status
+                );
+            }
+
+
+            updateLightingModeUI({
+                lighting_mode_enabled:
+                    data.enabled,
+                lighting_mode:
+                    data.mode
+            });
+
+
+            log(
+                enabled
+                    ? "Đã bật lighting mode: " + data.name
+                    : "Đã tắt lighting mode"
+            );
+
+        }
+        catch (error) {
+
+            if (enabled) {
+                document.getElementById(
+                    "lightingModeEnabled"
+                ).checked = false;
+            }
+
+
+            log(
+                "Lỗi lighting mode: " +
+                error.message
+            );
+
+        }
+
+    }
+
+
+    function toggleLightingMode() {
+
+        const modeSwitch =
+            document.getElementById(
+                "lightingModeEnabled"
+            );
+
+
+        sendLightingMode(
+            modeSwitch.checked
+        );
+
+    }
+
+
+    function selectLightingMode() {
+
+        const modeSwitch =
+            document.getElementById(
+                "lightingModeEnabled"
+            );
+
+
+        if (modeSwitch.checked) {
+            sendLightingMode(true);
+        }
+
+    }
+
+
+    // =========================================================
+    // UPDATE MODE UI
+    // =========================================================
+
+    function updateModeUI() {
+
+        const autoBtn =
+            document.getElementById(
+                "autoBtn"
+            );
+
+
+        const manualBtn =
+            document.getElementById(
+                "manualBtn"
+            );
+
+
+        const modeText =
+            document.getElementById(
+                "modeText"
+            );
+
+
+        const footerMode =
+            document.getElementById(
+                "footerMode"
+            );
+
+
+        modeText.innerText =
+            currentMode;
+
+
+        footerMode.innerText =
+            currentMode;
+
+
+        autoBtn.classList.remove(
+            "active"
+        );
+
+
+        manualBtn.classList.remove(
+            "active"
+        );
+
+
+        if (currentMode === "AUTO") {
+
+            autoBtn.classList.add(
+                "active"
+            );
+
+        }
+        else {
+
+            manualBtn.classList.add(
+                "active"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // PWM DISPLAY
+    // =========================================================
+
+    function updatePWMValue(id) {
+
+        const slider =
+            document.getElementById(
+                "pwm" + id
+            );
+
+
+        const value =
+            document.getElementById(
+                "value" + id
+            );
+
+
+        value.innerText =
+            slider.value;
+
+    }
+
+
+    // =========================================================
+    // APPLY PWM
+    // =========================================================
+
+    async function applyManualPWM() {
+
+        try {
+
+            if (currentMode !== "MANUAL") {
+
+                await setMode(
+                    "MANUAL"
+                );
+
+            }
+
+
+            for (
+                let i = 0;
+                i < 6;
+                i++
+            ) {
+
+                const slider =
+                    document.getElementById(
+                        "pwm" + i
+                    );
+
+
+                const pwm =
+                    parseInt(
+                        slider.value
+                    );
+
+
+                const response =
+                    await fetch(
+                        "/manual_led",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body: JSON.stringify({
+
+                                id: i,
+
+                                pwm: pwm
+
+                            })
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "HTTP " +
+                        response.status
+                    );
+
+                }
+
+
+                log(
+                    ledNames[i] +
+                    " = PWM " +
+                    pwm
+                );
+
+            }
+
+
+        }
+        catch (error) {
+
+            log(
+                "Lỗi PWM: " +
+                error.message
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ALL OFF
+    // =========================================================
+
+    async function allOff() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/all_off",
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            for (
+                let i = 0;
+                i < 6;
+                i++
+            ) {
+
+                document.getElementById(
+                    "pwm" + i
+                ).value = 0;
+
+
+                document.getElementById(
+                    "value" + i
+                ).innerText = 0;
+
+            }
+
+
+            log(
+                "Đã tắt toàn bộ LED"
+            );
+
+
+        }
+        catch (error) {
+
+            log(
+                "Lỗi ALL OFF: " +
+                error.message
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // RESET BACKGROUND
+    // =========================================================
+
+    async function resetBackground() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/reset",
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            log(
+                "Đã reset background"
+            );
+
+
+        }
+        catch (error) {
+
+            log(
+                "Lỗi reset: " +
+                error.message
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // UPDATE ROI
+    // =========================================================
+
+    function updateROI(data) {
+
+        const list =
+            document.getElementById(
+                "roiList"
+            );
+
+
+        if (!data) {
+            return;
+        }
+
+
+        const rois =
+            data.rois ||
+            data.roi ||
+            [];
+
+
+        if (!Array.isArray(rois)) {
+
+            list.innerHTML =
+                "Không có dữ liệu ROI";
+
+            return;
+
+        }
+
+
+        if (rois.length === 0) {
+
+            list.innerHTML =
+                "Đang chờ dữ liệu ROI...";
+
+            return;
+
+        }
+
+
+        let html = "";
+
+
+        rois.forEach(
+            function(roi, index) {
+
+
+                const name =
+                    roi.name ||
+                    "ROI " + index;
+
+
+                const detected =
+                    Boolean(
+                        roi.detected
+                    );
+
+
+                const pixels =
+                    roi.pixels !== undefined
+                        ? roi.pixels
+                        : 0;
+
+
+                const led =
+                    roi.led !== undefined
+                        ? roi.led
+                        : index;
+
+
+                const stateClass =
+                    detected
+                        ? "detected"
+                        : "clear";
+
+
+                const stateText =
+                    detected
+                        ? "DETECTED"
+                        : "CLEAR";
+
+
+                html += `
+
+                    <div class="roi">
+
+                        <div>
+
+                            <div class="roi-name">
+
+                                ${escapeHtml(name)}
+
+                            </div>
+
+                            <div class="roi-info">
+
+                                LED:
+                                ${led}
+
+                                &nbsp; | &nbsp;
+
+                                Pixels:
+                                ${pixels}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="roi-state ${stateClass}"
+                        >
+
+                            ${stateText}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+
+        list.innerHTML =
+            html;
+
+    }
+
+
+    // =========================================================
+    // ESCAPE HTML
+    // =========================================================
+
+    function escapeHtml(text) {
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.textContent =
+            text;
+
+
+        return div.innerHTML;
+
+    }
+
+
+    // =========================================================
+    // UPDATE PWM FROM SERVER
+    // =========================================================
+
+    function updatePWMFromStatus(data) {
+
+        if (!data) {
+            return;
+        }
+
+
+        const pwm =
+            data.led_pwm ||
+            data.pwm ||
+            data.last_led_pwm;
+
+
+        if (!Array.isArray(pwm)) {
+            return;
+        }
+
+
+        pwm.forEach(
+            function(value, index) {
+
+                if (index >= 6) {
+                    return;
+                }
+
+
+                const slider =
+                    document.getElementById(
+                        "pwm" + index
+                    );
+
+
+                const label =
+                    document.getElementById(
+                        "value" + index
+                    );
+
+
+                if (
+                    slider &&
+                    label
+                ) {
+
+                    /*
+                     * AUTO:
+                     * cập nhật slider theo
+                     * PWM thực tế.
+                     *
+                     * MANUAL:
+                     * không ghi đè slider
+                     * người dùng đang kéo.
+                     */
+
+                    if (
+                        currentMode === "AUTO"
+                    ) {
+
+                        slider.value =
+                            value;
+
+
+                        label.innerText =
+                            value;
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // UPDATE ESP STATUS
+    // =========================================================
+
+    function updateESPStatus(data) {
+
+        const espStatus =
+            document.getElementById(
+                "espStatus"
+            );
+
+
+        const footerEsp =
+            document.getElementById(
+                "footerEsp"
+            );
+
+
+        const espOnline =
+            Boolean(
+                data.esp32_online
+            );
+
+
+        if (espOnline) {
+
+            espStatus.innerText =
+                "ONLINE";
+
+
+            espStatus.className =
+                "status-online";
+
+
+            footerEsp.innerText =
+                "ONLINE";
+
+
+            footerEsp.className =
+                "status-online";
+
+        }
+        else {
+
+            espStatus.innerText =
+                "OFFLINE";
+
+
+            espStatus.className =
+                "status-offline";
+
+
+            footerEsp.innerText =
+                "OFFLINE";
+
+
+            footerEsp.className =
+                "status-offline";
+
+        }
+
+
+        if (data.esp_ip) {
+
+            document.getElementById(
+                "espIp"
+            ).innerText =
+                data.esp_ip;
+
+        }
+
+    }
+
+
+    function updateCameraStatus(data) {
+
+        const cameraStatus =
+            document.getElementById(
+                "cameraStatus"
+            );
+
+
+        if (!cameraStatus || !data) {
+            return;
+        }
+
+
+        cameraStatus.innerText =
+            data.display_status ||
+            "NORMAL";
+
+
+        cameraStatus.style.color =
+            data.display_status === "OBJECT"
+                ? "#ff5c5c"
+                : "#40d97b";
+
+    }
+
+
+    // =========================================================
+    // STATUS
+    // =========================================================
+
+    async function updateStatus() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/status",
+                    {
+                        cache:
+                            "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            // -------------------------------------------------
+            // MODE
+            // -------------------------------------------------
+
+            if (data.mode) {
+
+                currentMode =
+                    data.mode;
+
+                updateModeUI();
+
+            }
+
+
+            // -------------------------------------------------
+            // ROI
+            // -------------------------------------------------
+
+            updateROI(
+                data
+            );
+
+
+            // -------------------------------------------------
+            // PWM
+            // -------------------------------------------------
+
+            updatePWMFromStatus(
+                data
+            );
+
+
+            // -------------------------------------------------
+            // ESP32
+            // -------------------------------------------------
+
+            updateESPStatus(
+                data
+            );
+
+
+            updateCameraStatus(
+                data
+            );
+
+
+            updateLightingModeUI(
+                data
+            );
+
+
+        }
+        catch (error) {
+
+            const espStatus =
+                document.getElementById(
+                    "espStatus"
+                );
+
+
+            const footerEsp =
+                document.getElementById(
+                    "footerEsp"
+                );
+
+
+            espStatus.innerText =
+                "FLASK ERROR";
+
+
+            espStatus.className =
+                "status-offline";
+
+
+            footerEsp.innerText =
+                "FLASK ERROR";
+
+
+            footerEsp.className =
+                "status-offline";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CAMERA ERROR
+    // =========================================================
+
+    const camera =
+        document.getElementById(
+            "camera"
+        );
+
+
+    camera.onerror =
+        function() {
+
+            log(
+                "Không nhận được video từ Flask"
+            );
+
+        };
+
+
+    // =========================================================
+    // INITIALIZATION
+    // =========================================================
+
+    function initialize() {
+
+        updateModeUI();
+
+
+        for (
+            let i = 0;
+            i < 6;
+            i++
+        ) {
+
+            updatePWMValue(
+                i
+            );
+
+        }
+
+
+        updateStatus();
+
+
+        log(
+            "Đã kết nối giao diện Flask"
+        );
+
+    }
+
+
+    // =========================================================
+    // STATUS LOOP
+    // =========================================================
+
+    setInterval(
+        updateStatus,
+        1000
+    );
+
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    initialize();
+
+
+</script>
+
+
+</body>
+
+</html>
